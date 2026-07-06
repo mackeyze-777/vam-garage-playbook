@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>VAM Garage — Playbook de Ventas</title>
+<!-- Sistema APEX VAM: system-ui, acento rosa #e8178a, franja superior rosa -->
+<style>
+:root{
+  --night:#050505; --surface:#0c0c0c; --surface2:#131313; --line:#1e1e1e; --line2:#2c2c2c;
+  --pink:#e8178a; --text:#f0f0f0; --text2:#cfd0d4; --muted:#808490;
+  --ok:#27c76f; --warn:#e04040; --gold:#f0a500;
+  --r:14px; --pad:clamp(16px,4.5vw,30px); --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--night);color:var(--text);font-family:system-ui,-apple-system,sans-serif;line-height:1.5;min-height:100dvh;padding-bottom:60px;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(1000px 560px at 82% -12%, rgba(232,23,138,.08), transparent 60%)}
+.wrap{max-width:840px;margin:0 auto;padding:0 var(--pad);position:relative;z-index:1}
+header{position:sticky;top:0;z-index:30;background:rgba(5,5,5,.88);backdrop-filter:blur(16px);border-top:3px solid var(--pink);border-bottom:1px solid var(--line)}
+.hd{display:flex;align-items:center;gap:12px;padding:12px 0}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--pink);color:#06070B;display:grid;place-items:center;font-weight:800;font-size:19px;flex-shrink:0}
+.hd h1{font-size:clamp(15px,4.2vw,18px);font-weight:800;letter-spacing:-.02em}
+.hd p{font-size:12px;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:8px;padding:10px 0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;white-space:nowrap;min-height:40px;padding:0 18px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--text2);font:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s}
+.tab.on{background:var(--pink);color:#06070B;border-color:var(--pink)}
+.tab:active{transform:scale(.96)}
+
+.hero{padding:22px 0 6px}
+.hero h2{font-size:clamp(24px,6.5vw,34px);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.hero h2 .ac{color:var(--pink)}
+.hero p{color:var(--text2);font-size:14.5px;margin-top:8px;max-width:56ch}
+
+.search{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 14px;height:44px;margin:14px 0 4px}
+.search:focus-within{border-color:var(--pink)}
+.search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--text);font:inherit;font-size:15px}
+.search input::placeholder{color:var(--muted)}
+
+section{display:none}
+section.on{display:block}
+.cat{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
+.cat-ico{width:30px;height:30px;border-radius:9px;background:var(--surface2);border:1px solid var(--line);display:grid;place-items:center;font-size:15px}
+.cat h3{font-size:15px;font-weight:800}
+.cat .n{font-size:12px;color:var(--muted);font-weight:700}
+.cat .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+/* mensajes */
+.msg{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin:10px 0;transition:border-color .2s}
+.msg:hover{border-color:var(--line2)}
+.msg .mh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.msg .mt{font-size:12px;font-weight:800;color:var(--pink);text-transform:uppercase;letter-spacing:.06em}
+.msg .hint{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:8px}
+.msg pre{white-space:pre-wrap;font-family:inherit;font-size:14px;color:var(--text2);line-height:1.55}
+.copy{flex-shrink:0;min-height:34px;padding:0 14px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--text2);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s}
+.copy:hover{border-color:var(--pink);color:var(--pink)}
+.copy.done{background:rgba(39,199,111,.15);border-color:var(--ok);color:var(--ok)}
+
+/* ofertas */
+.offer{background:var(--surface);border:1px solid rgba(232,23,138,.3);border-radius:var(--r);padding:20px;margin:14px 0;position:relative;overflow:hidden}
+.offer::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--pink)}
+.offer .tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:7px;background:rgba(232,23,138,.12);color:var(--pink);border:1px solid rgba(232,23,138,.35);margin-bottom:10px}
+.offer .tag.gold{background:rgba(240,165,0,.12);color:var(--gold);border-color:rgba(240,165,0,.4)}
+.offer .tag.green{background:rgba(39,199,111,.12);color:var(--ok);border-color:rgba(39,199,111,.4)}
+.offer h4{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+.offer .who{font-size:13px;color:var(--muted);margin-bottom:12px}
+.stack{list-style:none;margin:10px 0}
+.stack li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px;color:var(--text2)}
+.stack li:last-child{border-bottom:0}
+.stack .val{color:var(--muted);white-space:nowrap;text-decoration:line-through}
+.pricebar{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:12px 0;padding:12px 14px;background:rgba(232,23,138,.07);border:1px solid rgba(232,23,138,.25);border-radius:11px}
+.pricebar .tot{font-size:13px;color:var(--muted)}
+.pricebar .tot b{text-decoration:line-through;color:var(--text2)}
+.pricebar .now{font-size:24px;font-weight:800;color:var(--pink)}
+.gnote{display:flex;gap:8px;font-size:12.5px;color:#9fd9a8;background:rgba(39,199,111,.08);border:1px solid rgba(39,199,111,.25);border-radius:10px;padding:10px 12px;margin:10px 0}
+.snote{display:flex;gap:8px;font-size:12.5px;color:#f5cd8a;background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.3);border-radius:10px;padding:10px 12px;margin:10px 0}
+.offer details{margin-top:12px}
+.offer summary{cursor:pointer;font-size:13.5px;font-weight:700;color:var(--pink);user-select:none}
+.offer details pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;color:var(--text2);line-height:1.55;margin-top:10px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px}
+.offer .obtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+
+/* inteligencia */
+.itbl-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);margin:10px 0}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+th{background:var(--surface2);color:var(--muted);text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--text2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.svc{font-weight:700;color:var(--text)}
+.pct{font-weight:800}
+.pct.hi{color:var(--ok)} .pct.mid{color:var(--gold)} .pct.lo{color:var(--warn)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0}
+.card h4{font-size:15px;font-weight:800;margin-bottom:10px}
+.card ul{list-style:none}
+.card li{padding:6px 0 6px 22px;position:relative;font-size:13.5px;color:var(--text2);line-height:1.5}
+.card li::before{content:"→";position:absolute;left:0;color:var(--pink);font-weight:800}
+.card li.no::before{content:"✗";color:var(--warn)}
+.card li.si::before{content:"✓";color:var(--ok)}
+.bignum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:12px 0}
+.bn{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.bn .v{font-size:22px;font-weight:800;color:var(--pink)}
+.bn .l{font-size:11.5px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+.foot{padding:34px 0 10px;text-align:center;font-size:12px;color:#5b5f6b}
+/* upsells */
+.upchips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 6px}
+.upchip{min-height:40px;padding:0 16px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--text2);font:inherit;font-weight:700;font-size:13.5px;cursor:pointer;transition:all .15s}
+.upchip.on{background:var(--pink);color:#06070B;border-color:var(--pink)}
+.upchip:active{transform:scale(.96)}
+.up{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;margin:10px 0}
+.up .uh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.when{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:7px;white-space:nowrap}
+.when.cot{background:rgba(232,23,138,.12);color:var(--pink);border:1px solid rgba(232,23,138,.35)}
+.when.tal{background:rgba(240,165,0,.12);color:var(--gold);border:1px solid rgba(240,165,0,.4)}
+.when.ent{background:rgba(39,199,111,.12);color:var(--ok);border:1px solid rgba(39,199,111,.4)}
+.up .ut{font-size:15px;font-weight:800;flex:1}
+.up .uprice{font-size:14px;font-weight:800;color:var(--pink);white-space:nowrap}
+.up pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;color:var(--text2);line-height:1.55;margin-top:6px}
+.up .star{color:var(--gold)}
+.maxbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:rgba(232,23,138,.07);border:1px solid rgba(232,23,138,.3);border-radius:var(--r);padding:14px 16px;margin:12px 0}
+.maxbar .ml{font-size:13px;color:var(--text2)}
+.maxbar .mv{font-size:22px;font-weight:800;color:var(--pink)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ok);color:#04120a;font-weight:800;font-size:14px;padding:10px 22px;border-radius:999px;transition:transform .25s var(--ease);z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0)}
+:focus-visible{outline:2px solid var(--pink);outline-offset:3px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="hd">
+      <div class="logo">V</div>
+      <div style="flex:1">
+        <h1>Playbook de Ventas</h1>
+        <p>Ofertas · Mensajes · Inteligencia — todo en un lugar</p>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" data-t="ofertas">🏆 Ofertas</button>
+      <button class="tab" data-t="upsells">⬆️ Upsells</button>
+      <button class="tab" data-t="mensajes">💬 Mensajes</button>
+      <button class="tab" data-t="intel">📊 Inteligencia</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ OFERTAS ============ -->
+<section id="ofertas" class="on">
+  <div class="hero">
+    <h2>Ofertas <span class="ac">Grand Slam</span></h2>
+    <p>No vendas el servicio — vende el resultado con nombre, valor apilado y garantía. Cada oferta trae su mensaje de WhatsApp listo para copiar.</p>
+  </div>
+
+  <div class="offer">
+    <span class="tag">⭐ Oferta principal</span>
+    <h4>PROTOCOLO VAM · 3 AÑOS</h4>
+    <div class="who">Para quien quiere proteger en serio su auto (el cliente ideal). Producto: Gtecnic certificado.</div>
+    <ul class="stack">
+      <li><span>Corrección de pintura completa (2 pasos, hasta 95%)</span><span class="val">$4,500</span></li>
+      <li><span>Recubrimiento cerámico Gtecnic · 3 años</span><span class="val">$4,800</span></li>
+      <li><span>Certificado de garantía por escrito, firmado</span><span class="val">$500</span></li>
+      <li><span>1er mantenimiento técnico (6 meses) INCLUIDO</span><span class="val">$1,100</span></li>
+      <li><span>Reporte fotográfico HD antes / después</span><span class="val">$400</span></li>
+    </ul>
+    <div class="pricebar"><span class="tot">Valor total: <b>$11,300</b></span><span class="now">$6,500</span></div>
+    <div class="gnote">🛡️ <span><b>Garantía:</b> si en los primeros 30 días ves cualquier defecto de aplicación, lo corregimos gratis. Y la capa queda respaldada 3 años por escrito.</span></div>
+    <div class="snote">⏳ <span><b>Escasez real:</b> solo caben 5 protocolos al mes (2 técnicos, proceso de 9.5 h + 12 h de curado bajo techo). Dilo tal cual.</span></div>
+    <details>
+      <summary>💬 Mensaje de WhatsApp de la oferta</summary>
+      <pre id="of1">[nombre], te explico exactamente qué le haríamos a tu [vehículo]:
+
+*PROTOCOLO VAM 3 AÑOS* 🛡️
+
+1️⃣ Corrección completa de pintura (2 pasos) — eliminamos rayones, swirls y opacidad hasta en un 95%
+2️⃣ Recubrimiento cerámico *Gtecnic* — 3 años de protección real contra sol, lluvia y contaminación
+3️⃣ *Certificado de garantía por escrito* — firmado, con tus fotos de antes y después
+4️⃣ Tu *primer mantenimiento técnico incluido* (a los 6 meses) para que la capa rinda al máximo
+5️⃣ Reporte fotográfico HD de todo el proceso
+
+Todo esto por separado saldría en más de $11,000.
+El protocolo completo: *$6,500*.
+
+Solo agendo *5 protocolos al mes* porque cada auto se lleva un día completo + curado bajo techo. Este mes me quedan [X] lugares.
+
+¿Te aparto el tuyo? 🚗✨</pre>
+      <div class="obtns"><button class="copy" data-c="of1">📋 Copiar mensaje</button></div>
+    </details>
+  </div>
+
+  <div class="offer">
+    <span class="tag gold">👑 Premium</span>
+    <h4>PROTOCOLO VAM · 5 AÑOS (Doble Capa)</h4>
+    <div class="who">Para autos nuevos, de agencia o clientes que quieren lo máximo. Producto: Gyeon Mohs EVO ×2 capas.</div>
+    <ul class="stack">
+      <li><span>Corrección de pintura completa (2 pasos)</span><span class="val">$4,500</span></li>
+      <li><span>Cerámico Gyeon Mohs EVO · DOBLE CAPA · 5 años</span><span class="val">$9,000</span></li>
+      <li><span>Certificado de garantía por escrito</span><span class="val">$500</span></li>
+      <li><span>2 mantenimientos técnicos incluidos (6 y 12 meses)</span><span class="val">$2,200</span></li>
+      <li><span>Reporte fotográfico HD + curado controlado 12 h bajo techo</span><span class="val">$600</span></li>
+    </ul>
+    <div class="pricebar"><span class="tot">Valor total: <b>$16,800</b></span><span class="now">$10,500</span></div>
+    <div class="gnote">🛡️ <span><b>Ancla de venta:</b> "un auto de $400,000 protegido 5 años por $10,500 = $175 al mes. Menos que un lavado quincenal — y conserva su valor de reventa."</span></div>
+    <details>
+      <summary>💬 Mensaje de WhatsApp de la oferta</summary>
+      <pre id="of2">[nombre], para tu [vehículo] lo que más te conviene es el nivel máximo:
+
+*PROTOCOLO VAM 5 AÑOS · DOBLE CAPA* 👑
+
+1️⃣ Corrección completa de pintura (2 pasos)
+2️⃣ Cerámico *Gyeon Mohs EVO en DOBLE CAPA* — el sistema más duradero que aplicamos: 5 años de protección
+3️⃣ Certificado de garantía *por escrito*
+4️⃣ *2 mantenimientos técnicos incluidos* (a los 6 y 12 meses)
+5️⃣ Curado controlado 12 horas bajo techo + reporte fotográfico HD
+
+Piénsalo así: tu auto vale [valor]. Protegerlo 5 años cuesta *$10,500* — sale a $175 al mes, menos que lavarlo dos veces.
+
+Este nivel solo lo aplico [X] veces al mes por el tiempo que lleva hacerlo bien.
+
+¿Lo agendamos? 🚗</pre>
+      <div class="obtns"><button class="copy" data-c="of2">📋 Copiar mensaje</button></div>
+    </details>
+  </div>
+
+  <div class="offer">
+    <span class="tag green">🚪 Entrada</span>
+    <h4>ESCUDO VAM · 1 AÑO</h4>
+    <div class="who">Para el que duda o trae menos presupuesto. La puerta de entrada — y el puente al de 3 años.</div>
+    <ul class="stack">
+      <li><span>Pulido de corrección 1 paso (hasta 80%)</span><span class="val">$1,200</span></li>
+      <li><span>Cerámico CanCoat Evo · 1 año</span><span class="val">$2,800</span></li>
+      <li><span>Reporte fotográfico antes / después</span><span class="val">$400</span></li>
+    </ul>
+    <div class="pricebar"><span class="tot">Valor total: <b>$4,400</b></span><span class="now">$3,500</span></div>
+    <div class="gnote">🔀 <span><b>El puente (úsalo siempre):</b> "por $3,000 más te llevas 3 AÑOS de protección en vez de 1, con corrección más profunda y mantenimiento incluido. La mayoría elige eso." — Así el de 1 año VENDE el de 3.</span></div>
+    <details>
+      <summary>💬 Mensaje de WhatsApp de la oferta</summary>
+      <pre id="of3">[nombre], si quieres empezar a proteger tu [vehículo] sin irte al protocolo completo, tengo el:
+
+*ESCUDO VAM 1 AÑO* 🛡️
+
+1️⃣ Pulido de corrección (1 paso) — recupera el brillo y elimina la mayoría de rayones superficiales
+2️⃣ Cerámico *CanCoat Evo* — 1 año de protección hidrofóbica
+3️⃣ Reporte fotográfico antes/después
+
+Por *$3,500*.
+
+Eso sí, te soy honesto: por $3,000 más te llevas el *Protocolo de 3 AÑOS* — corrección más profunda, cerámico Gtecnic y tu primer mantenimiento incluido. La mayoría termina eligiendo ese porque por año sale mucho más barato.
+
+¿Cuál va mejor contigo? 🚗</pre>
+      <div class="obtns"><button class="copy" data-c="of3">📋 Copiar mensaje</button></div>
+    </details>
+  </div>
+
+  <div class="offer">
+    <span class="tag green">✨ La más pedida</span>
+    <h4>BRILLO TOTAL · Pulido + Encerado</h4>
+    <div class="who">Lo que más te piden. Es la puerta de entrada perfecta — y el mejor momento para subir al cerámico.</div>
+    <ul class="stack">
+      <li><span>Lavado + descontaminación completa (química + clay)</span><span class="val">$500</span></li>
+      <li><span>Pulido de corrección (recupera brillo, elimina rayones superficiales)</span><span class="val">$1,200</span></li>
+      <li><span>Encerado / sellado de protección (~4 meses)</span><span class="val">$500</span></li>
+      <li><span>Fotos antes / después</span><span class="val">$300</span></li>
+    </ul>
+    <div class="pricebar"><span class="tot">Valor total: <b>$2,500</b></span><span class="now">$1,900</span></div>
+    <div class="gnote">🔀 <span><b>El puente al cerámico (dilo SIEMPRE al cotizar):</b> "la cera dura 4 meses. Por $1,600 más, en lugar de cera te pongo cerámico de 1 AÑO — mismo pulido, protección 3 veces más duradera." Si dice que sí → vendiste un Escudo $3,500.</span></div>
+    <details>
+      <summary>💬 Mensaje de WhatsApp de la oferta</summary>
+      <pre id="of7">[nombre], para devolverle el brillo a tu [vehículo] lo que necesitas es el:
+
+*BRILLO TOTAL · Pulido + Encerado* ✨
+
+1️⃣ Lavado y descontaminación completa (química + barra de arcilla)
+2️⃣ Pulido de corrección — recupera el brillo y elimina la mayoría de rayones superficiales
+3️⃣ Encerado de protección para que dure
+4️⃣ Fotos del antes y después
+
+Todo por *$1,900* (camioneta puede variar).
+
+Y un tip honesto: la cera dura unos 4 meses. Si quieres que la protección dure *1 año completo*, por $1,600 más te pongo cerámico en lugar de cera — mismo pulido, triple duración. Tú decides.
+
+¿Te aparto un lugar esta semana? 🚗</pre>
+      <div class="obtns"><button class="copy" data-c="of7">📋 Copiar mensaje</button></div>
+    </details>
+  </div>
+
+  <div class="offer">
+    <span class="tag">🌧️ Oferta de temporada (lluvias)</span>
+    <h4>RENOVACIÓN TOTAL DE INTERIOR</h4>
+    <div class="who">La que se vende AHORA que llueve: se trabaja bajo techo y la lluvia ensucia interiores. Vestiduras avanzado + kit.</div>
+    <ul class="stack">
+      <li><span>Detallado interior profundo (20 fases: vapor + inyección-succión)</span><span class="val">$2,400</span></li>
+      <li><span>Cielo, postes, cinturones, rieles y cajuela incluidos</span><span class="val">$600</span></li>
+      <li><span>Hidratación de plásticos acabado mate</span><span class="val">$300</span></li>
+      <li><span>Fotos antes / después + video 360°</span><span class="val">$300</span></li>
+    </ul>
+    <div class="pricebar"><span class="tot">Valor total: <b>$3,600</b></span><span class="now">$2,400</span></div>
+    <div class="snote">☔ <span><b>Ángulo de lluvia:</b> "con las lluvias el lodo y la humedad se meten al carro — es la temporada en que más interiores se dañan (hongos, olores). Y es justo el trabajo que hacemos bajo techo sin depender del clima."</span></div>
+    <details>
+      <summary>💬 Mensaje de WhatsApp de la oferta</summary>
+      <pre id="of4">[nombre], con estas lluvias el interior de tu [vehículo] está sufriendo más de lo que crees: lodo, humedad atrapada, olores…
+
+Justo para esta temporada tenemos la *RENOVACIÓN TOTAL DE INTERIOR* 🧽
+
+✅ Detallado profundo de 20 fases: vapor + inyección-succión en asientos y alfombras
+✅ Cielo, postes, cinturones, rieles y cajuela — TODO incluido
+✅ Hidratación de plásticos (acabado mate, como de agencia)
+✅ Fotos y video del antes/después
+
+Queda literalmente como nuevo por dentro. *$2,400* (camioneta puede variar).
+
+Lo mejor: se trabaja bajo techo, así que la lluvia no mueve tu cita. ¿Te aparto un día esta semana? 🚗</pre>
+      <div class="obtns"><button class="copy" data-c="of4">📋 Copiar mensaje</button></div>
+    </details>
+  </div>
+
+  <div class="offer">
+    <span class="tag gold">⬆️ Upsell en la entrega</span>
+    <h4>PPF FRONTAL — "Ya invertiste en la pintura, blíndala"</h4>
+    <div class="who">Se ofrece SOLO en la entrega de un cerámico (nunca antes de cerrar el core). El cerámico protege químicamente; el PPF, físicamente.</div>
+    <ul class="stack">
+      <li><span>Parcial Front (facia, faros, parcial cofre) · Profilm ~3 años</span><span class="val" style="text-decoration:none">desde $7,000</span></li>
+      <li><span>Parcial Front · 3M ~5 años</span><span class="val" style="text-decoration:none">desde $9,000</span></li>
+      <li><span>Full Front (cofre, salpicaderas, facia, espejos) · Profilm</span><span class="val" style="text-decoration:none">desde $12,000</span></li>
+      <li><span>Full Front · 3M</span><span class="val" style="text-decoration:none">desde $15,000</span></li>
+    </ul>
+    <details>
+      <summary>💬 Guion para la entrega (en persona o WhatsApp)</summary>
+      <pre id="of5">[nombre], tu carro quedó espectacular — y justo por eso te comento algo antes de que te lo lleves.
+
+El cerámico lo protege de sol, agua y contaminación. Pero contra *piedras y golpes de carretera* la única protección real es el *PPF* (película de protección de pintura).
+
+Mucha gente lo pone solo en el frente, que es donde pegan las piedras: facia, cofre y faros. Empieza desde $7,000 y con eso el frente queda blindado 3-5 años.
+
+No te lo tienes que llevar hoy — pero como ya tienes la pintura corregida y protegida, es EL momento perfecto para ponerlo (se aplica sobre pintura perfecta).
+
+¿Quieres que te pase los niveles y precios? 🛡️</pre>
+      <div class="obtns"><button class="copy" data-c="of5">📋 Copiar guion</button></div>
+    </details>
+  </div>
+
+  <div class="offer">
+    <span class="tag green">🔁 Continuidad — el fin del "mes en cero"</span>
+    <h4>CLUB VAM · Mantenimiento Cerámico</h4>
+    <div class="who">Se vende en CADA entrega de cerámico y a TODOS los clientes pasados de cerámico. Es tu ingreso recurrente.</div>
+    <ul class="stack">
+      <li><span>Lavado técnico de mantenimiento (2 cubetas + secado pro)</span><span class="val" style="text-decoration:none">incluido</span></li>
+      <li><span>Inspección de la capa cerámica con lámpara</span><span class="val" style="text-decoration:none">incluido</span></li>
+      <li><span>Topper / refuerzo hidrofóbico</span><span class="val" style="text-decoration:none">incluido</span></li>
+      <li><span>Mantiene VIGENTE la garantía del cerámico</span><span class="val" style="text-decoration:none">clave</span></li>
+    </ul>
+    <div class="pricebar"><span class="tot">Cada 6 meses:</span><span class="now">$1,100</span></div>
+    <div class="gnote">💰 <span><b>La matemática:</b> 15 miembros activos = ~$2,750/mes recurrentes + son los primeros en recomprar corrección/PPF. Meta: 15 miembros en 90 días.</span></div>
+    <details>
+      <summary>💬 Guion de venta (en la entrega) + mensaje para clientes pasados</summary>
+      <pre id="of6">— EN LA ENTREGA (di esto SIEMPRE) —
+
+"[nombre], para que el cerámico rinda los [X] años completos y la garantía siga vigente, le toca su mantenimiento técnico a los 6 meses: lavado especial, inspección de la capa y refuerzo. Son $1,100. ¿Te lo dejo agendado de una vez para [mes]? Yo te recuerdo una semana antes."
+
+— MENSAJE PARA CLIENTES PASADOS DE CERÁMICO —
+
+Hola [nombre]! 👋 Te saluda *VAM Garage*. Hace unos meses te aplicamos el *cerámico* de tu [vehículo] y ya le toca su *mantenimiento técnico*: lavado especial + inspección de la capa + refuerzo hidrofóbico, para que siga repeliendo el agua, conserve el brillo y *no se pierda la garantía*. 🛡️
+
+Son $1,100 y te lo dejo como recién aplicado.
+
+¿Te aparto un lugar esta semana? Dime qué día te queda mejor 🚗✨</pre>
+      <div class="obtns"><button class="copy" data-c="of6">📋 Copiar guiones</button></div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ UPSELLS ============ -->
+<section id="upsells">
+  <div class="hero">
+    <h2>Máquina de <span class="ac">upsells</span></h2>
+    <p>Elige qué servicio está tomando el cliente y te digo qué ofrecerle, en qué momento, con qué guion — y cuál es el ticket máximo de esa ruta.</p>
+  </div>
+  <div class="upchips" id="upchips"></div>
+  <div id="uproot"></div>
+
+  <div class="cat"><span class="cat-ico">🔎</span><h3>Detectores — lo que ves en la recepción se convierte en venta</h3><div class="ln"></div></div>
+  <div class="card" style="border-color:rgba(240,165,0,.35)">
+    <ul>
+      <li><b>Manchas de lluvia ácida / gotas grabadas</b> en pintura o cristales → corrección localizada. <b>Sugerido $600–$1,500 según panel</b> ⚠️ <i>precio por confirmar contigo</i>. Guion: "tu [cofre/toldo] tiene marcas de lluvia ácida grabadas — si no se corrigen, se comen el barniz. Aprovechando que está aquí te lo dejo parejo."</li>
+      <li><b>Faros opacos / amarillos</b> → Restauración de faros <b>$500</b>. "Alumbran menos y hacen ver el carro más viejo. Restaurados quedan como nuevos."</li>
+      <li><b>Motor sucio o aceitoso</b> → Lavado de motor <b>$500</b> (con revisión previa del SOP). "Ya que está aquí, el motor te lo dejo impecable."</li>
+      <li><b>Manchas u olores en asientos</b> → Shampoo de vestiduras: mantenimiento <b>$1,800</b> o avanzado con vapor e inyección-succión <b>$2,400</b>.</li>
+      <li><b>Hologramas o rayones de otro taller</b> → Pulido 3-1 <b>$1,200</b> o corrección completa <b>$4,500</b>. "Esto te lo dejaron los cepillos/otro pulido — se corrige."</li>
+      <li><b>Rines con polvo de freno incrustado</b> → Detalle de ruedas y llantas. ⚠️ <i>Precio por definir (~$300–$500 sugerido)</i>.</li>
+      <li><b>Piel reseca / plásticos quemados</b> → Kit interior por piezas <b>$1,000–$2,500</b>.</li>
+    </ul>
+  </div>
+
+  <div class="cat"><span class="cat-ico">📏</span><h3>Reglas del upsell (para no quemar la venta)</h3><div class="ln"></div></div>
+  <div class="card">
+    <ul>
+      <li><b>Máximo 3 ofertas extra por cliente:</b> 1 al cotizar (el upgrade de nivel) + 1-2 en el taller (con foto) + 1 en la entrega (PPF / Club / siguiente cita).</li>
+      <li><b>El de taller se manda por WhatsApp CON FOTO:</b> "oye, encontré esto en tu carro…" — es el que más cierra, porque la evidencia vende sola.</li>
+      <li><b>El upgrade va ANTES de cerrar</b> (cambia el nivel); los adicionales van DESPUÉS de que ya dijo sí al principal — no ensucies el cierre.</li>
+      <li class="no"><b>PPF y Club nunca al cotizar</b> — solo en la entrega, con el cliente feliz viendo su carro nuevo.</li>
+      <li class="no">Si dijo NO dos veces, para. La relación vale más que $500 de hoy.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ MENSAJES ============ -->
+<section id="mensajes">
+  <div class="hero">
+    <h2>Arsenal de <span class="ac">WhatsApp</span></h2>
+    <p>Todos los mensajes del sistema en un lugar. Busca, copia, reemplaza [nombre] y manda. Regla de oro: el objetivo no es vender — es que respondan.</p>
+  </div>
+  <label class="search">🔎<input id="q" type="search" placeholder="Buscar mensaje… (ej. caro, pensarlo, cita, audio)"></label>
+  <div id="msgroot"></div>
+</section>
+
+<!-- ============ INTELIGENCIA ============ -->
+<section id="intel">
+  <div class="hero">
+    <h2>Inteligencia de <span class="ac">negocio</span></h2>
+    <p>Qué vender, qué anunciar y qué números vigilar — con tus datos reales (P&L Ene–May + hoja de costeo en vivo).</p>
+  </div>
+
+  <div class="bignum">
+    <div class="bn"><div class="v">$61,940</div><div class="l">Ingreso promedio /mes</div></div>
+    <div class="bn"><div class="v">39%</div><div class="l">del ingreso es cerámico</div></div>
+    <div class="bn"><div class="v">~$181</div><div class="l">Costo por cliente (ads)</div></div>
+    <div class="bn"><div class="v">~$3,100</div><div class="l">Ticket promedio actual</div></div>
+  </div>
+
+  <div class="cat"><span class="cat-ico">🏆</span><h3>Más vendidos (mix real YTD)</h3><div class="ln"></div></div>
+  <div class="itbl-scroll"><table>
+    <thead><tr><th>Línea</th><th>Ingreso YTD</th><th>% del total</th><th>Lectura</th></tr></thead>
+    <tbody>
+      <tr><td class="svc">Cerámico</td><td>$120,900</td><td class="pct hi">39%</td><td>Tu motor. La demanda premium EXISTE en Pachuca</td></tr>
+      <tr><td class="svc">Pulido</td><td>$83,450</td><td class="pct hi">27%</td><td>Volumen sano — es la puerta al cerámico</td></tr>
+      <tr><td class="svc">Detallado interior</td><td>$68,300</td><td class="pct mid">22%</td><td>Fuerte — y es el que vende la temporada de lluvias</td></tr>
+      <tr><td class="svc">Combos (MIX)</td><td>$26,000</td><td class="pct mid">8%</td><td>El paquete PVM tiene 70% de margen — empújalo</td></tr>
+      <tr><td class="svc">DLT / otras</td><td>~$10,000</td><td class="pct lo">3%</td><td>No invertir aquí todavía</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="cat"><span class="cat-ico">💰</span><h3>Rentabilidad por servicio (precio vivo vs costo completo)</h3><div class="ln"></div></div>
+  <div class="itbl-scroll"><table>
+    <thead><tr><th>Servicio</th><th>Precio</th><th>Margen real</th><th>Veredicto</th></tr></thead>
+    <tbody>
+      <tr><td class="svc">Corrección de pintura (2 pasos)</td><td>$4,500</td><td class="pct hi">~72%</td><td>⭐ El más rentable por hora — véndelo más</td></tr>
+      <tr><td class="svc">Paquete Pulido+Vestiduras+Motor</td><td>$3,900</td><td class="pct hi">~64%</td><td>⭐ Gran combo, sube ticket</td></tr>
+      <tr><td class="svc">Vestiduras avanzado</td><td>$2,400</td><td class="pct hi">~62%</td><td>Sano — la estrella de lluvias</td></tr>
+      <tr><td class="svc">1 paso + cerámico 1 año</td><td>$3,500</td><td class="pct hi">~57%</td><td>Sano</td></tr>
+      <tr><td class="svc">1 paso + 3 años</td><td>$4,800</td><td class="pct hi">~56%</td><td>Sano</td></tr>
+      <tr><td class="svc">Pulido 3-1</td><td>$1,200</td><td class="pct mid">~50%</td><td>OK como entrada — no lo anuncies solo</td></tr>
+      <tr><td class="svc">2 pasos + 5 años (Mohs ×2)</td><td>$9,000</td><td class="pct mid">~50%</td><td>Subir a $10,500 con la oferta Protocolo</td></tr>
+      <tr><td class="svc">2 pasos + 3 años</td><td>$5,700</td><td class="pct mid">~49%</td><td>Subir a $6,500 con la oferta Protocolo</td></tr>
+      <tr><td class="svc">Cerámico mate 2 años</td><td>$4,000</td><td class="pct mid">~46%</td><td>Vigilar — materiales caros</td></tr>
+      <tr><td class="svc">2 pasos + cerámico 1 año</td><td>$4,000</td><td class="pct lo">~42%</td><td>⚠️ El más flojo — empuja al de 3 años</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="cat"><span class="cat-ico">📣</span><h3>Qué anunciar en Facebook (y qué no)</h3><div class="ln"></div></div>
+  <div class="card">
+    <h4>✅ SÍ anunciar</h4>
+    <ul>
+      <li class="si"><b>El Protocolo VAM (cerámico)</b> — es el 39% de tu ingreso con demanda probada. Anuncia el RESULTADO ("pintura de agencia 3 años, garantizado por escrito"), nunca la ficha técnica.</li>
+      <li class="si"><b>Ángulo del anuncio → diagnóstico, no venta:</b> "Mándanos foto de tu pintura y te decimos qué tiene y cuánto cuesta arreglarlo — respuesta el mismo día." Baja la fricción, llena el WhatsApp.</li>
+      <li class="si"><b>Temporada de lluvias (jun–sep): interiores.</b> "La lluvia por fuera se seca; por dentro se pudre. Renovación total de interior — trabajamos bajo techo."</li>
+      <li class="si"><b>Antes/después reales</b> — tienes 1,364 fotos/videos. El Camaro, el Mustang, la Cupra rosa: los llamativos jalan clic.</li>
+      <li class="si"><b>Corrección de pintura</b> — 72% de margen. "¿Rayones y opacidad? Mira esto" + video de corrección.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>❌ NO anunciar</h4>
+    <ul>
+      <li class="no">Precios en el anuncio — atrae cazadores de descuento y te compara con el taller barato.</li>
+      <li class="no">Lavado / servicios de entrada como oferta principal — CAC de $181 para un ticket de $400 no cierra.</li>
+      <li class="no">Descuentos o "promociones" — VAM vende confianza y resultado, no rebaja. Ofrece VALOR extra (mantenimiento incluido), no precio menor.</li>
+      <li class="no">DLT como marca separada — 3% del ingreso; consolida todo el gasto de pauta en VAM.</li>
+    </ul>
+  </div>
+
+  <div class="cat"><span class="cat-ico">📊</span><h3>El tablero semanal (solo 4 números)</h3><div class="ln"></div></div>
+  <div class="card">
+    <ul>
+      <li><b>% de cierre</b> de cotizaciones — si baja de 25%, el problema es la oferta o el seguimiento, no el precio.</li>
+      <li><b>Ticket promedio</b> — meta: de $3,100 a $5,000 con el stack de ofertas.</li>
+      <li><b>Miembros del Club VAM</b> — meta: 15 en 90 días (= piso recurrente).</li>
+      <li><b>Días de espera en agenda</b> — cuando llegues a 2 semanas, sube precios (Fase 2 completa).</li>
+    </ul>
+  </div>
+
+  <div class="cat"><span class="cat-ico">☀️</span><h3>Rutina diaria de ventas (10 min, antes del taller)</h3><div class="ln"></div></div>
+  <div class="card">
+    <ul>
+      <li><b>🔴 HOT</b> (respondió &lt;24h) → responde HOY, es prioridad absoluta.</li>
+      <li><b>🟡 TIBIO</b> (2–7 días sin respuesta) → 1 mensaje de seguimiento (Paso 2).</li>
+      <li><b>🔵 FRÍO</b> (7–30 días) → 1 mensaje de reactivación con confusión (Paso 1).</li>
+      <li><b>⚫ ARCHIVO</b> (30+ días) → último intento o libera.</li>
+      <li>Máximo <b>3 seguimientos por día</b> y <b>4 intentos por persona</b> — más suena desesperado.</li>
+      <li>La <b>escasez solo si es real</b> — nunca inventes agenda llena.</li>
+      <li>El <b>audio gana</b> en reactivaciones — suena humano.</li>
+    </ul>
+  </div>
+</section>
+
+<div class="foot">VAM Garage · Pachuca, Hidalgo · Documento interno de ventas · Fuentes: Segundo Cerebro (09/09b), CRM Recompra, hoja de costeo en vivo · 2026-07</div>
+</main>
+
+<div class="toast" id="toast">✓ Copiado</div>
+
+<script>
+/* ===== MENSAJES (fuente: 09, 09b, bienvenida WA, CRM recompra) ===== */
+const MSGS=[
+{cat:"👋 Bienvenida automática (WhatsApp Business)",items:[
+{t:"Auto-reply a todo lead nuevo",h:"Configurado en WhatsApp Business → Mensaje de bienvenida. Se dispara al primer contacto o tras 14 días.",m:`¡Hola! 🙌 Gracias por escribir a *VAM Garage* ✨
+
+Con gusto te apoyamos. Para que nos conozcas, así trabajamos:
+
+🔹 *Todo por cita* — le dedicamos el tiempo completo a tu auto, sin prisas ni improvisar.
+🔹 *Recepción con fotos* — documentamos el estado de tu vehículo al recibirlo, para tu tranquilidad.
+🔹 *Proceso por fases* — cada servicio sigue un procedimiento y tiempos definidos. Trabajo garantizado.
+🔹 *Cotización clara* — precio y alcance por escrito antes de empezar.
+🔹 *Entrega + garantía* — te lo entregamos con fotos y garantía de satisfacción.
+
+Cuéntame: ¿qué vehículo tienes y qué te interesa? (cerámico, pulido, interior, PPF…) y te armo tu cotización 😊
+
+📍 VAM Garage · 771 802 1389`}]},
+
+{cat:"🔍 Apertura — cuando escriben por primera vez",items:[
+{t:"Entender antes de cotizar",m:`Antes de decirte precios, quiero entender bien lo que necesitas. ¿Qué es lo que más te interesa lograr: recuperar el brillo, proteger la pintura nueva, o quitar rayones?`},
+{t:"Responder a '¿cuánto cuesta?'",m:`[nombre], el precio depende del vehículo, el estado de la pintura y el servicio. Para darte un número real: ¿qué carro tienes y qué problema tiene la pintura ahorita?`},
+{t:"Social proof (decepcionado de otro lado)",m:`Muchos clientes llegan porque ya fueron a otro lugar y no quedaron contentos. ¿Ese fue tu caso o apenas estás investigando opciones?`},
+{t:"Servicio más solicitado",m:`Este servicio es de los más solicitados en el taller, especialmente por los resultados en camionetas. ¿Has hecho algo de protección a tu carro antes?`},
+{t:"Diagnóstico por foto (para leads de ads)",m:`[nombre], mándame 2-3 fotos de la pintura (de cerca donde se vean los rayones y una general) y te digo exactamente qué tiene y qué le haríamos. Sin compromiso 📸`},
+{t:"Comentó en un post (IG/FB)",m:`Hola [nombre], ¿tienes alguna duda o quieres cotización para tu carro? Cuéntame qué tipo de vehículo tienes y qué le quieres hacer.`},
+{t:"Reaccionó a una story",m:`[nombre], ¿tienes un carro que le vendría bien este trabajo? Cuéntame y te digo exactamente qué le haríamos.`}]},
+
+{cat:"🧊 Reactivación — cliente de 2 a 7 días (confusión fingida)",items:[
+{t:"¿Era tu vehículo?",h:"Elige UNO. No mandes más de uno a la vez.",m:`Oye, una duda.
+¿Tu vehículo era el que tenía el tema de los rayones en la puerta o estoy confundido de cliente?`},
+{t:"Entró uno parecido al tuyo",m:`Por cierto, me acordé de tu carro porque hoy entró uno muy parecido al tuyo.
+¿Al final qué decidiste hacerle?`},
+{t:"Te iba a marcar",m:`Te iba a marcar pero mejor te escribo.
+¿Sigues con la idea de hacerle algo al vehículo o lo dejaste para más adelante?`},
+{t:"Cerrando agenda",m:`Estoy cerrando la agenda y me apareció tu conversación.
+No recuerdo si al final sí ibas a hacerlo o quedó pendiente.`}]},
+
+{cat:"🧊 Reactivación — cliente de hace meses",items:[
+{t:"Me dio curiosidad",m:`Oye, me apareció tu conversación y me dio curiosidad.
+¿Al final sí le hiciste algo al carro o sigue igual que cuando hablamos?`},
+{t:"¿Mismo vehículo?",m:`Te hago una pregunta rápida.
+¿Todavía tienes el mismo vehículo?`},
+{t:"¿Qué te detuvo?",m:`Hoy entró un vehículo parecido al tuyo y me acordé de la cotización que te había mandado hace tiempo.
+¿Qué fue lo que te detuvo en ese momento?`},
+{t:"Pregunta sincera",m:`Te voy a hacer una pregunta sincera.
+Cuando pediste información, ¿qué era lo que más te preocupaba?
+¿El costo, el tiempo o simplemente no era el momento?`},
+{t:"🎙️ AUDIO (el más efectivo)",h:"Léelo natural, sin pausas forzadas. El audio gana siempre en reactivación.",m:`Hey [nombre], qué tal. Oye, andaba revisando mis conversaciones y me quedé con la duda — ¿eras tú el que tenía el [carro/la camioneta] con el tema de [rayones/opacidad/pintura]? Porque hoy entró uno muy parecido y me acordé. Dime si sigo en lo correcto o me confundí de cliente.`},
+{t:"🎙️ AUDIO alterno (teléfono nuevo)",m:`Actualicé el teléfono y se me fueron algunos chats. Recuerdo que hace unos días estábamos platicando sobre tu [carro/cerámica/pulido], y me quedé con la duda de si me mandaste algo y no pude responderte. ¿Podrías confirmarme?`}]},
+
+{cat:"🔄 Cuando responde 'no lo hice / quedó pendiente'",items:[
+{t:"Diagnóstico (la mejor)",h:"La respuesta te dice exactamente qué objeción manejar.",m:`Justo eso te iba a preguntar.
+¿Qué fue lo que te detuvo en ese momento?
+¿Tiempo, presupuesto o simplemente no era prioridad?`},
+{t:"Limpia y directa",m:`Entiendo.
+¿Y ahorita sigue siendo algo que te gustaría hacerle o ya no está dentro de tus planes?`},
+{t:"Social proof suave",m:`Te pregunto porque la mayoría de clientes que regresan meses después normalmente me dicen:
+"Debí haberlo hecho antes."
+¿Qué era lo que querías resolver exactamente en tu vehículo?`},
+{t:"Para cerámicos",m:`¿Y la pintura cómo se ha comportado?
+Porque cuando hablamos me acuerdo que te preocupaba mucho conservarla.`},
+{t:"Para interiores",m:`¿Y el interior sigue igual o ya se ensució más?
+Me acuerdo que una de las cosas que te preocupaban eran las vestiduras.`},
+{t:"⭐ El cierre más fuerte",h:"Casi siempre responde 'sí'. En ese momento ya no vendes — se convenció solo. Tu siguiente mensaje va directo a agendar.",m:`Entonces sí te interesaba hacerlo.
+Lo único es que no era el momento correcto, ¿cierto?`}]},
+
+{cat:"📆 Seguimiento después de cotizar",items:[
+{t:"Día 1",m:`[nombre], quedó pendiente tu cotización de [servicio]. ¿Te sirvió la info o prefieres que te explique algo en específico?`},
+{t:"Día 3",m:`Oye [nombre], sigo con un espacio disponible para [semana]. ¿Quieres que te lo aparte o prefieres que revisemos algo antes?`},
+{t:"Día 5–7",m:`[nombre], te soy honesto — esta semana se llena la agenda y no quiero que pierdas tu fecha. ¿Le damos o prefieres para el mes que viene?`},
+{t:"Último intento",m:`[nombre], mando este último mensaje para no quedarme con la duda. Si aún te interesa proteger tu carro avísame y lo agendamos. Si ya no, no hay problema — sin bronca. ¿Qué prefieres?`},
+{t:"¿Viste los precios?",m:`[nombre] ¿tuviste oportunidad de ver los precios que te mandé?`},
+{t:"Urgencia real (solo si es verdad)",m:`Hola [nombre], esta semana tenemos solo [X] espacios disponibles en agenda. Si quieres, puedo apartarte uno. ¿Te interesa?`},
+{t:"Precio vigente hasta fecha",m:`[nombre], el precio que te di del [servicio] sigue vigente hasta [fecha]. Después suben los materiales. ¿Lo aprovechamos?`},
+{t:"¿Te tomo en cuenta?",m:`[nombre] ¿cómo estás? Hace unos días me preguntaste por [cerámica/pulido/PPF] pero ya no me dijiste nada. ¿Sigues interesado? Te pregunto porque estoy terminando mi agenda de la semana y quiero saber si te tomo en cuenta o no.`},
+{t:"Vi que no cayó el depósito",m:`[nombre], revisé nuestra conversación y vi que te mandé los datos de pago pero no veo el depósito. ¿Tienes alguna duda sobre el servicio o el proceso? Quedo atento.`}]},
+
+{cat:"🛑 Objeción: 'Está muy caro' / 'No tengo dinero'",items:[
+{t:"El costo de NO protegerlo",m:`[nombre], entiendo. Déjame preguntarte algo: si tu carro vale [precio] hoy, ¿cuánto crees que te va a costar no protegerlo en 2 años — en rayones, pérdida de brillo, y lo que pierdes al venderlo?
+
+La cerámica no es un gasto — es lo que evita que pagues más después. ¿Qué parte del precio te preocupa más, para ver cómo lo resolvemos?`},
+{t:"El 40%",m:`[nombre], el 40% de los clientes que tenemos nos dijeron lo mismo al principio, pero encontraron la forma de solucionarlo. Te pregunto: ¿esto es algo que realmente quieres hacer para tu carro?`},
+{t:"La inversión inteligente",m:`[nombre], te hago una pregunta: si tu carro vale $400k hoy y una cerámica lo mantiene así 3 años más, protegiéndolo de rayones, oxidación y pérdida de brillo — ¿eso no es una buena inversión sobre lo que ya tienes?`},
+{t:"Apartado para no perder fecha",m:`[nombre], entiendo que no cuentes con el total ahora. No voy a dejar que pierdas esta fecha por eso. ¿Cuál sería el apartado que puedas hacer hoy para que yo te separe el espacio? Coordinamos el resto al entregar.`},
+{t:"Pagar el doble después",m:`[nombre], entiendo que en este momento no lo tengas al 100%, pero déjame ser directo: si no proteges tu pintura ahora, vas a pagar el doble más adelante en corrección o en valor de reventa perdido. La pregunta es: ¿prefieres tardar meses en resolver esto, o invertir ahora para solucionarlo bien?`}]},
+
+{cat:"🛑 Objeción: 'Déjame pensarlo / consultarlo'",items:[
+{t:"¿Qué falta?",m:`[nombre], si me dices eso es porque hay algo que no quedó 100% claro. Dime: ¿qué hace falta para que podamos agendar hoy mismo?`},
+{t:"Fotos para decidir",m:`[nombre], claro — y para ayudarte a pensar con más info, te mando fotos del antes y después de un [tipo de carro similar] que hicimos este mes. Así ves exactamente qué esperar. ¿Te las mando?`},
+{t:"Que vengan juntos",m:`[nombre], perfecto. ¿Qué tal si pasan juntos al taller? Sin compromiso — ven, ven el proceso en persona, los trabajos, y si les convence arrancamos. ¿Esta semana o la próxima les queda mejor?`},
+{t:"La verdadera razón",m:`[nombre], tú me dijiste que esto era importante para ti y que el presupuesto no era el problema. Entonces, ¿cuál es la razón real por la que no puedes decidir hoy?`},
+{t:"Storyselling (reventa)",m:`[nombre], quiero contarte algo rápido. Tuve un cliente con una [RAM/Tahoe/similar] en la misma situación que tú — quería pensarlo. Al final entró, hicimos la cerámica, y cuando fue a vender su carro 2 años después, recuperó mucho más de lo que le costó la protección. Si realmente lo quieres hacer, el paso es agendar. ¿Lo hacemos?`},
+{t:"No era el momento (meses)",m:`[nombre], entiendo — a veces no es el momento. ¿Ahorita sí lo es? Porque si tu carro sigue igual que cuando hablamos, ya llevas [X meses] más de daño acumulado. No te presiono, solo digo que entre más pronto, menos trabajo de corrección necesita.`},
+{t:"No decido al momento",m:`[nombre], ¿esto es un sí rotundo pero solo necesitas un poco más de info para sentirte seguro? Si es así: agendemos una visita al taller sin compromiso. Ven, ve el proceso, y decides. Si te convence arrancamos ese mismo día — si no, no pasa nada. ¿Esta semana o la próxima?`}]},
+
+{cat:"✅ Cierre y agendar",items:[
+{t:"Visita al taller",m:`[nombre], ¿por qué no pasas al taller esta semana? Sin compromiso — te muestro el proceso en vivo, ves la diferencia en persona y si te convence lo cerramos. Tengo [día] a las [hora] o [día] a las [hora]. ¿Cuál te queda mejor?`},
+{t:"Videollamada 15 min",m:`[nombre], hacemos una videollamada de 15 minutos, te muestro trabajos recientes de carros similares al tuyo y resolvemos dudas. ¿Hoy en la tarde o mañana temprano?`},
+{t:"Cierre directo",m:`[nombre], tengo tu espacio listo. Solo falta tu ok para bloquearlo en agenda. ¿Lo confirmamos?`},
+{t:"Cierre con apartado",m:`[nombre], no hay bronca si no traes el total. Déjame un apartado de $[X] para separar la fecha y el resto al entregar el carro. ¿Te funciona así?`},
+{t:"50/50",m:`¿Prefieres pagar el total o dejar un apartado del 50% para asegurar tu lugar y el resto al recoger?`},
+{t:"Confirmar cita",m:`[nombre], confirmando tu cita para [día] a las [hora] en VAM Garage. Llega con el carro tal cual está — entre más natural, mejor el diagnóstico. ¿Alguna duda antes de venir?`},
+{t:"Cerrar espacios del mes",m:`[nombre] ya estoy por cerrar los espacios de [semana/mes]. ¿Te aparto el tuyo?`},
+{t:"Demostraciones esta semana",m:`Oye [nombre], esta semana tenemos demostraciones en el taller. ¿Quieres que te agendemos un momento para que veas el proceso en vivo?`}]},
+
+{cat:"🔁 Recompra / mantenimiento (los del CRM, por servicio)",items:[
+{t:"Cliente de CERÁMICO",h:"El CRM de recompra los manda personalizados con un clic — estos son la base.",m:`Hola [nombre]! 👋 Te saluda *VAM Garage*. Hace unos meses te aplicamos el *cerámico* de tu [vehículo] y ya le toca su *mantenimiento*: lavado especial + revisión de la capa, para que siga repeliendo el agua, conserve el brillo y no se pierda la garantía. 🛡️
+
+Los clientes que le dan su mantenimiento a tiempo conservan el cerámico mucho más. ¿Te aparto un lugar esta semana? Dime qué día te queda mejor. 🚗✨`},
+{t:"Cliente de PULIDO / ENCERADO",m:`Hola [nombre]! 👋 Aquí *VAM Garage*. Ya pasaron unos meses desde que pulimos y enceramos tu [vehículo], y la cera ya cumplió su ciclo (dura ~4 meses). Sin protección la pintura se opaca y agarra rayones más fácil. ✨
+
+Te propongo un *repulido + encerado* para devolverle el brillo y volver a protegerla. ¿Te lo agendo esta semana? ¿Qué día puedes? 🚗`},
+{t:"Cliente de INTERIOR",m:`Hola [nombre]! 👋 Te escribe *VAM Garage*. Ya tiene rato desde el detallado de interior de tu [vehículo] y el uso diario va dejando su marca. 🧽
+
+¿Le damos otra manita para dejarlo como nuevo otra vez? Te lo dejamos impecable y oliendo a limpio. ¿Te aparto un día esta semana? 🚗`},
+{t:"Cliente genérico (otro servicio)",m:`Hola [nombre]! 👋 Te saluda *VAM Garage*. Ya pasó un tiempo desde tu último servicio y queremos que tu [vehículo] siga impecable. Ya te toca tu mantenimiento. ¿Te aparto un lugar esta semana? Dime qué día te acomoda. 🚗✨`}]},
+
+{cat:"🎁 Pedir reseña y referidos (en la entrega)",items:[
+{t:"Reseña en Google",m:`[nombre], me dio mucho gusto trabajar tu [vehículo] 🙌 Si quedaste contento, ¿me regalas una reseña en Google? Es 1 minuto y nos ayuda muchísimo: [link]
+
+Y cualquier cosa con el trabajo, aquí estoy — tu garantía está activa. 🛡️`},
+{t:"Referido con incentivo doble",m:`[nombre], una última cosa: si conoces a alguien que quiera proteger o recuperar su carro, mándamelo con confianza. Si agenda, su servicio trae un detalle extra incluido — y a ti te regalo un lavado técnico premium en tu próxima visita. Los dos ganan. 🤝`}]}
+];
+
+/* ===== render ===== */
+const $=s=>document.querySelector(s);
+function renderMsgs(filter){
+  const root=$("#msgroot"); root.innerHTML="";
+  const q=(filter||"").toLowerCase();
+  let shown=0;
+  MSGS.forEach(g=>{
+    const items=g.items.filter(it=>!q||((it.t+" "+it.m+" "+(it.h||"")+" "+g.cat).toLowerCase().includes(q)));
+    if(!items.length)return;
+    const sec=document.createElement("div");
+    sec.innerHTML=`<div class="cat"><span class="cat-ico">${g.cat.slice(0,2)}</span><h3>${g.cat.slice(2).trim()}</h3><span class="n">${items.length}</span><div class="ln"></div></div>`;
+    items.forEach((it,i)=>{
+      shown++;
+      const id="m"+shown;
+      const d=document.createElement("div"); d.className="msg";
+      d.innerHTML=`<div class="mh"><span class="mt">${it.t}</span><button class="copy" data-c="${id}">📋 Copiar</button></div><pre id="${id}">${it.m.replace(/</g,"&lt;")}</pre>${it.h?`<div class="hint">💡 ${it.h}</div>`:""}`;
+      sec.appendChild(d);
+    });
+    root.appendChild(sec);
+  });
+  if(!shown)root.innerHTML=`<div style="text-align:center;color:var(--muted);padding:40px 0">Sin resultados para "${filter}"</div>`;
+  bindCopy();
+}
+function bindCopy(){
+  document.querySelectorAll(".copy").forEach(b=>{
+    b.onclick=()=>{
+      const el=document.getElementById(b.dataset.c);
+      const txt=el.textContent;
+      const done=()=>{b.classList.add("done");b.textContent="✓ Copiado";
+        const t=$("#toast");t.classList.add("show");
+        setTimeout(()=>{b.classList.remove("done");b.textContent="📋 Copiar";t.classList.remove("show");},1600);};
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(()=>fallback(txt,done));}
+      else fallback(txt,done);
+    };
+  });
+}
+function fallback(txt,done){
+  const ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");done();}catch(e){alert("Selecciona y copia manualmente");}
+  document.body.removeChild(ta);
+}
+/* ===== UPSELLS — rutas por servicio core ===== */
+const UPS=[
+{id:"brillo",n:"✨ Brillo Total (Pulido + Encerado)",base:1900,max:"$4,700 — y si toma el upgrade a cerámico: $6,300+",items:[
+ {w:"cot",t:"⭐ Upgrade: cerámico 1 año en lugar de cera",p:"+$1,600 → $3,500",m:`Un tip honesto: la cera dura unos 4 meses. Por $1,600 más, en lugar de cera te pongo *cerámico de 1 año* — mismo pulido, protección el triple de tiempo. La mayoría que lo prueba ya no regresa a la cera. ¿Cuál dejamos?`},
+ {w:"tal",t:"Lavado de motor (con foto)",p:"$500",m:`[nombre], ya con tu carro aquí le eché un ojo al motor — mira la foto. Aprovechando que está en el taller te lo dejo impecable por $500. ¿Le entramos?`},
+ {w:"tal",t:"Restauración de faros (con foto)",p:"$500",m:`Oye, tus faros están opacos (te mando foto) — alumbran menos y hacen ver el carro más viejo. Aprovechando que está aquí, restaurados quedan como nuevos: $500. ¿Los incluyo?`},
+ {w:"tal",t:"Shampoo de vestiduras",p:"$1,800",m:`Por fuera va a quedar como nuevo… ¿el interior lo dejamos igual? 😅 Te propongo el mantenimiento de vestiduras para que quede parejo por dentro y por fuera: $1,800. ¿Lo agrego?`},
+ {w:"ent",t:"Agendar el siguiente (retención)",p:"$0 hoy",m:`[nombre], la cera dura unos 4 meses. ¿Te agendo el retoque para [mes]? Yo te mando recordatorio una semana antes y así nunca pierde el brillo.`}]},
+
+{id:"cer1",n:"🛡️ Escudo 1 Año",base:3500,max:"$6,600 — con PPF en la entrega: $13,600+",items:[
+ {w:"cot",t:"⭐ Upgrade: Protocolo 3 Años",p:"+$3,000 → $6,500",m:`Antes de cerrar te digo esto: por $3,000 más te vas al *Protocolo de 3 AÑOS* — corrección más profunda (2 pasos), cerámico Gtecnic y tu primer mantenimiento incluido. Por año de protección sale mucho más barato. ¿Te late más?`},
+ {w:"tal",t:"Lavado de motor (con foto)",p:"$500",m:`[nombre], le eché un ojo al motor — mira la foto. Aprovechando el servicio te lo dejo impecable por $500. ¿Va?`},
+ {w:"tal",t:"Restauración de faros (con foto)",p:"$500",m:`Tus faros están opacos (foto) — con el carro brillando se van a notar más. Restaurados: $500 aprovechando. ¿Los incluyo?`},
+ {w:"tal",t:"Kit interior por piezas",p:"$1,000–$2,500",m:`El exterior va a quedar de agencia. Si quieres, el kit interior por piezas (plásticos, piel, detalles) desde $1,000 según lo que elijas. ¿Te paso opciones?`},
+ {w:"ent",t:"Club VAM — mantenimiento a 6 meses",p:"$1,100",m:`Para que el cerámico rinda el año completo, a los 6 meses le toca su mantenimiento técnico ($1,100): lavado especial, inspección y refuerzo. ¿Te lo dejo agendado de una vez? Yo te recuerdo.`},
+ {w:"ent",t:"PPF frontal (solo si quedó feliz)",p:"desde $7,000",m:`Una cosa más: el cerámico lo protege de sol y agua, pero contra *piedras* la única protección real es el PPF. Solo el frente (facia, cofre, faros) desde $7,000. Es EL momento porque la pintura ya está perfecta. ¿Te paso niveles?`}]},
+
+{id:"cer35",n:"👑 Protocolo 3 / 5 Años",base:6500,max:"$19,000+ con PPF 3M en la entrega",items:[
+ {w:"tal",t:"Lavado de motor (con foto)",p:"$500",m:`[nombre], el motor no se queda atrás — mira la foto. Te lo dejo al nivel del resto del carro por $500. ¿Va?`},
+ {w:"tal",t:"Restauración de faros (con foto)",p:"$500",m:`Con la pintura ya perfecta, los faros opacos van a resaltar (foto). Restaurados: $500. ¿Los incluyo?`},
+ {w:"tal",t:"Kit interior por piezas",p:"$1,000–$2,500",m:`¿Emparejamos el interior? Kit por piezas desde $1,000 — plásticos, piel, detalles. Te paso opciones si quieres.`},
+ {w:"ent",t:"⭐ PPF frontal — el upsell natural del protocolo",p:"desde $7,000 (3M desde $9,000)",m:`[nombre], tu carro quedó espectacular — y justo por eso te comento: el cerámico protege químicamente (sol, agua, contaminación), pero contra *piedras y golpes de carretera* lo único real es el *PPF*. El frente completo queda blindado 3-5 años, desde $7,000. Y como la pintura ya está corregida y protegida, es EL momento perfecto de aplicarlo. ¿Te paso los niveles?`},
+ {w:"ent",t:"Club VAM — plan de mantenimientos",p:"$1,100 c/6 meses",m:`Tu protocolo ya incluye el primer mantenimiento. Para los siguientes, te dejo el plan: cada 6 meses, $1,100 — así la garantía sigue viva los [3/5] años completos. Yo te aviso cuando toque. ¿Lo dejamos armado?`}]},
+
+{id:"interior",n:"🧽 Renovación Interior",base:2400,max:"$4,900 con el upgrade a Paquete",items:[
+ {w:"cot",t:"⭐ Upgrade: Paquete Pulido + Vestiduras + Motor",p:"+$1,500 → $3,900",m:`Te propongo algo: por $1,500 más te llevas el *paquete completo* — este mismo interior + pulido exterior + lavado de motor. El carro entero renovado de una vez, no a medias. ¿Cuál dejamos?`},
+ {w:"tal",t:"Restauración de faros (con foto)",p:"$500",m:`Ya que está aquí: tus faros están opacos (foto). Restaurados quedan como nuevos, $500. ¿Los incluyo?`},
+ {w:"tal",t:"Manchas de lluvia ácida en cristales/pintura (con foto)",p:"cotizar $600–$1,500",m:`[nombre], encontré marcas de agua/lluvia ácida grabadas en [cristales/cofre] — te mando foto. Si no se corrigen se siguen comiendo el acabado. Aprovechando que está aquí te lo dejo parejo por $[X]. ¿Le entramos?`},
+ {w:"ent",t:"El exterior para la próxima",p:"$1,900",m:`Por dentro quedó como nuevo… cuando quieras emparejamos por fuera: pulido + encerado $1,900. ¿Te aparto lugar para [semana que viene]?`}]},
+
+{id:"lavado",n:"🚿 Lavado",base:400,max:"$1,900 en la misma visita",items:[
+ {w:"cot",t:"⭐ Upgrade: + Cera y descontaminación",p:"+$500 → $900",m:`Por $500 más, en lugar de solo limpio sale *protegido y con brillo*: le hago descontaminación completa y encerado. La pintura se siente como vidrio. ¿Le subimos?`},
+ {w:"tal",t:"Lavado de motor (con foto)",p:"$500",m:`Ya que está aquí, ¿el motor también? Mira cómo está (foto) — $500 y queda impecable.`},
+ {w:"tal",t:"Restauración de faros (con foto)",p:"$500",m:`Tus faros están opacos (foto) — $500 aprovechando la visita y quedan como nuevos. ¿Va?`},
+ {w:"ent",t:"Brillo Total para la próxima",p:"$1,900",m:`Si un día quieres que quede COMO NUEVO y no solo limpio, el siguiente paso es el pulido + encerado ($1,900). Cuando gustes te aparto lugar — el brillo es otra cosa.`}]},
+
+{id:"paquete",n:"🏆 Paquete Pulido + Vestiduras + Motor",base:3900,max:"$7,000+ con upgrade a cerámico",items:[
+ {w:"cot",t:"⭐ Upgrade: cerámico en lugar de cera",p:"+$1,600",m:`El paquete trae pulido con protección de cera (~4 meses). Por $1,600 más, la protección es *cerámico de 1 año*. Mismo trabajo, triple duración. ¿Le subimos?`},
+ {w:"tal",t:"Restauración de faros (con foto)",p:"$500",m:`Para que el paquete quede redondo: tus faros están opacos (foto). $500 y quedan como nuevos. ¿Los incluyo?`},
+ {w:"tal",t:"Lluvia ácida / manchas grabadas (con foto)",p:"cotizar $600–$1,500",m:`Encontré marcas de agua grabadas en [panel] — foto adjunta. El pulido normal no las saca; es corrección localizada. Te lo dejo parejo por $[X] aprovechando. ¿Va?`},
+ {w:"ent",t:"Club VAM / agendar mantenimiento",p:"$1,100",m:`Para mantener este nivel, en 4-6 meses le toca su mantenimiento. ¿Te lo dejo agendado? Yo te recuerdo una semana antes.`}]}
+];
+const WHEN={cot:["cot","AL COTIZAR"],tal:["tal","EN EL TALLER · CON FOTO"],ent:["ent","EN LA ENTREGA"]};
+let upSel="brillo";
+function renderUps(){
+  const chips=$("#upchips");
+  chips.innerHTML=UPS.map(u=>`<button class="upchip${u.id===upSel?' on':''}" data-u="${u.id}">${u.n}</button>`).join("");
+  chips.querySelectorAll(".upchip").forEach(b=>b.onclick=()=>{upSel=b.dataset.u;renderUps();});
+  const u=UPS.find(x=>x.id===upSel);
+  let html=`<div class="maxbar"><span class="ml">Servicio base: <b>$${u.base.toLocaleString()}</b> · Si tomas toda la ruta:</span><span class="mv">Ticket máximo ${u.max}</span></div>`;
+  u.items.forEach((it,i)=>{
+    const id="u_"+upSel+"_"+i;
+    const w=WHEN[it.w];
+    html+=`<div class="up"><div class="uh"><span class="when ${w[0]}">${w[1]}</span><span class="ut">${it.t}</span><span class="uprice">${it.p}</span><button class="copy" data-c="${id}">📋 Copiar</button></div><pre id="${id}">${it.m.replace(/</g,"&lt;")}</pre></div>`;
+  });
+  $("#uproot").innerHTML=html;
+  bindCopy();
+}
+renderUps();
+
+document.querySelectorAll(".tab").forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===t));
+    document.querySelectorAll("main section").forEach(s=>s.classList.toggle("on",s.id===t.dataset.t));
+    window.scrollTo(0,0);
+  };
+});
+$("#q").oninput=e=>renderMsgs(e.target.value.trim());
+renderMsgs("");
+bindCopy();
+</script>
+</body>
+</html>
