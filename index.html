@@ -38,6 +38,12 @@ header{position:sticky;top:0;z-index:30;background:rgba(5,5,5,.88);backdrop-filt
 .search:focus-within{border-color:var(--pink)}
 .search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--text);font:inherit;font-size:15px}
 .search input::placeholder{color:var(--muted)}
+.varsbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 2px}
+.varsbar input{flex:1;min-width:130px;height:42px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:0 13px;color:var(--text);font:inherit;font-size:14px;outline:0}
+.varsbar input:focus{border-color:var(--pink)}
+.varsbar .vhint{width:100%;font-size:11.5px;color:var(--muted)}
+.drift{display:none;background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.45);color:#f5cd8a;border-radius:var(--r);padding:13px 15px;font-size:13px;line-height:1.55;margin:12px 0}
+.drift b{color:var(--gold)}
 
 section{display:none}
 section.on{display:block}
@@ -153,6 +159,8 @@ td.svc{font-weight:700;color:var(--text)}
     <h2>Ofertas <span class="ac">Grand Slam</span></h2>
     <p>No vendas el servicio — vende el resultado con nombre, valor apilado y garantía. Cada oferta trae su mensaje de WhatsApp listo para copiar.</p>
   </div>
+
+  <div class="drift" id="drift"></div>
 
   <div class="offer">
     <span class="tag">⭐ Oferta principal</span>
@@ -410,6 +418,11 @@ Son $1,100 y te lo dejo como recién aplicado.
     <p>Todos los mensajes del sistema en un lugar. Busca, copia, reemplaza [nombre] y manda. Regla de oro: el objetivo no es vender — es que respondan.</p>
   </div>
   <label class="search">🔎<input id="q" type="search" placeholder="Buscar mensaje… (ej. caro, pensarlo, cita, audio)"></label>
+  <div class="varsbar">
+    <input id="v-nom" type="text" placeholder="Nombre del cliente (opcional)">
+    <input id="v-veh" type="text" placeholder="Vehículo (ej. Mazda 3 rojo)">
+    <span class="vhint">💡 Llena estos campos y TODOS los mensajes se copian ya personalizados — [nombre] y [vehículo] se reemplazan solos.</span>
+  </div>
   <div id="msgroot"></div>
 </section>
 
@@ -721,11 +734,43 @@ function renderMsgs(filter){
   if(!shown)root.innerHTML=`<div style="text-align:center;color:var(--muted);padding:40px 0">Sin resultados para "${filter}"</div>`;
   bindCopy();
 }
+function fillVars(t){
+  const n=(document.getElementById('v-nom')||{}).value||'';
+  const v=(document.getElementById('v-veh')||{}).value||'';
+  if(n.trim())t=t.replace(/\[nombre\]/g,n.trim());
+  if(v.trim())t=t.replace(/\[veh[ií]culo\]/g,v.trim()).replace(/tu \[carro\/la camioneta\]/g,'tu '+v.trim());
+  return t;
+}
+/* Detector de drift: si la hoja de costeo cambia, avisa que las ofertas quedaron viejas */
+const SHEET_PRICES={'1 paso + ceramico 1 año':[3500,'ESCUDO VAM'],'2 pasos + 3 años':[5700,'ARMADURA VAM'],'2 pasos + 5 años':[9000,'TITÁN VAM'],'pulido + cera':[1900,'EFECTO SHOWROOM'],'vestiduras avanzado':[2400,'INTERIOR CERO KM']};
+(async function checkDrift(){
+  try{
+    const res=await fetch('https://docs.google.com/spreadsheets/d/1UqaOw2jmD24uN8avQisEeKCfYgDPEMtrLIHYhHXXpU0/gviz/tq?tqx=out:csv&gid=777960188&t='+Date.now());
+    const txt=await res.text();
+    const diffs=[];
+    txt.split(/\r?\n/).forEach(line=>{
+      const cells=line.split('","').map(c=>c.replace(/^"|"$/g,''));
+      if(cells.length<8)return;
+      const key=(cells[0]||'').trim().toLowerCase();
+      if(!(key in SHEET_PRICES))return;
+      const raw=(cells[7]||'').trim(); if(!raw)return;
+      const n=parseFloat(raw.replace(/[^\d.]/g,'')); if(!isFinite(n))return;
+      const price=raw.includes('%')?Math.round(n/100):Math.round(n);
+      const [exp,name]=SHEET_PRICES[key];
+      if(price!==exp)diffs.push(name+': la hoja dice $'+price.toLocaleString()+' y esta página muestra $'+exp.toLocaleString());
+    });
+    if(diffs.length){
+      const d=document.getElementById('drift');
+      d.innerHTML='⚠️ <b>Los precios de la hoja cambiaron</b> — estas ofertas quedaron viejas y hay que actualizarlas:<br>• '+diffs.join('<br>• ');
+      d.style.display='block';
+    }
+  }catch(e){/* sin internet: no molestar */}
+})();
 function bindCopy(){
   document.querySelectorAll(".copy").forEach(b=>{
     b.onclick=()=>{
       const el=document.getElementById(b.dataset.c);
-      const txt=el.textContent;
+      const txt=fillVars(el.textContent);
       const done=()=>{b.classList.add("done");b.textContent="✓ Copiado";
         const t=$("#toast");t.classList.add("show");
         setTimeout(()=>{b.classList.remove("done");b.textContent="📋 Copiar";t.classList.remove("show");},1600);};
