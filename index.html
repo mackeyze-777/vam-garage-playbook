@@ -146,6 +146,7 @@ td.svc{font-weight:700;color:var(--text)}
       <button class="tab on" data-t="ofertas">🏆 Ofertas</button>
       <button class="tab" data-t="upsells">⬆️ Upsells</button>
       <button class="tab" data-t="mensajes">💬 Mensajes</button>
+      <button class="tab" data-t="semana">📈 Semana</button>
       <button class="tab" data-t="intel">📊 Inteligencia</button>
     </div>
   </div>
@@ -408,6 +409,26 @@ Son $1,100 y te lo dejo como recién aplicado.
       <li class="no"><b>PPF y Club nunca al cotizar</b> — solo en la entrega, con el cliente feliz viendo su carro nuevo.</li>
       <li class="no">Si dijo NO dos veces, para. La relación vale más que $500 de hoy.</li>
     </ul>
+  </div>
+</section>
+
+<!-- ============ SEMANA (KPIs vivos) ============ -->
+<section id="semana">
+  <div class="hero">
+    <h2>Tu semana en <span class="ac">números reales</span></h2>
+    <p>Calculado en vivo de tu agenda. Lo que se mide, se mueve — y lo que no se captura, no existe: llena precio y estado en cada cita.</p>
+  </div>
+  <div id="kpiroot"><div class="card" style="text-align:center;color:var(--muted)">Cargando agenda…</div></div>
+
+  <div class="cat"><span class="cat-ico">🧮</span><h3>Simulador Fase 2 — decide con números</h3><div class="ln"></div></div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">
+      <label style="font-size:12px;color:var(--muted)">ARMADURA (hoy $5,700)<input id="s-arm" type="number" value="6500" style="width:100%;height:42px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;color:var(--text);font:inherit;padding:0 12px;margin-top:4px"></label>
+      <label style="font-size:12px;color:var(--muted)">TITÁN (hoy $9,000)<input id="s-tit" type="number" value="10500" style="width:100%;height:42px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;color:var(--text);font:inherit;padding:0 12px;margin-top:4px"></label>
+      <label style="font-size:12px;color:var(--muted)">ESCUDO (hoy $3,500)<input id="s-esc" type="number" value="4000" style="width:100%;height:42px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;color:var(--text);font:inherit;padding:0 12px;margin-top:4px"></label>
+    </div>
+    <div id="simout" style="margin-top:12px;font-size:14px;color:var(--text2)">…</div>
+    <div style="margin-top:8px;font-size:11.5px;color:var(--muted)">Usa TU volumen real de cerámicos (promedio mensual de la agenda 2026). La decisión sigue siendo tuya: esto solo pone el número sobre la mesa.</div>
   </div>
 </section>
 
@@ -739,6 +760,7 @@ function fillVars(t){
   const v=(document.getElementById('v-veh')||{}).value||'';
   if(n.trim())t=t.replace(/\[nombre\]/g,n.trim());
   if(v.trim())t=t.replace(/\[veh[ií]culo\]/g,v.trim()).replace(/tu \[carro\/la camioneta\]/g,'tu '+v.trim());
+  Object.entries(LIVE_SWAP).forEach(([a,b])=>{t=t.split(a).join(b);});
   return t;
 }
 /* Detector de drift: si la hoja de costeo cambia, avisa que las ofertas quedaron viejas */
@@ -747,7 +769,7 @@ const SHEET_PRICES={'1 paso + ceramico 1 año':[3500,'ESCUDO VAM'],'2 pasos + 3 
   try{
     const res=await fetch('https://docs.google.com/spreadsheets/d/1UqaOw2jmD24uN8avQisEeKCfYgDPEMtrLIHYhHXXpU0/gviz/tq?tqx=out:csv&gid=777960188&t='+Date.now());
     const txt=await res.text();
-    const diffs=[];
+    const diffs=[]; const diffMap={};
     txt.split(/\r?\n/).forEach(line=>{
       const cells=line.split('","').map(c=>c.replace(/^"|"$/g,''));
       if(cells.length<8)return;
@@ -757,15 +779,29 @@ const SHEET_PRICES={'1 paso + ceramico 1 año':[3500,'ESCUDO VAM'],'2 pasos + 3 
       const n=parseFloat(raw.replace(/[^\d.]/g,'')); if(!isFinite(n))return;
       const price=raw.includes('%')?Math.round(n/100):Math.round(n);
       const [exp,name]=SHEET_PRICES[key];
-      if(price!==exp)diffs.push(name+': la hoja dice $'+price.toLocaleString()+' y esta página muestra $'+exp.toLocaleString());
+      if(price!==exp){
+        diffs.push(name+': $'+exp.toLocaleString()+' → <b>$'+price.toLocaleString()+'</b>');
+        diffMap['$'+exp.toLocaleString()]='$'+price.toLocaleString();
+      }
     });
+    applyLivePrices(diffMap);
     if(diffs.length){
       const d=document.getElementById('drift');
-      d.innerHTML='⚠️ <b>Los precios de la hoja cambiaron</b> — estas ofertas quedaron viejas y hay que actualizarlas:<br>• '+diffs.join('<br>• ');
+      d.innerHTML='⚠️ <b>Los precios de la hoja cambiaron.</b> Ya actualicé lo visible y lo que copies — pero avísale a Claude para regrabar los textos:<br>• '+diffs.join('<br>• ');
       d.style.display='block';
     }
   }catch(e){/* sin internet: no molestar */}
 })();
+/* Precios EN VIVO: actualiza pricebars y sustituye precios viejos al copiar */
+let LIVE_SWAP={}; // "$5,700" → "$6,500" cuando la hoja cambie
+function applyLivePrices(diffMap){
+  Object.entries(diffMap).forEach(([oldP,newP])=>{
+    LIVE_SWAP[oldP]=newP;
+    document.querySelectorAll('.pricebar .now').forEach(el=>{
+      if(el.textContent.trim()===oldP) el.textContent=newP;
+    });
+  });
+}
 function bindCopy(){
   document.querySelectorAll(".copy").forEach(b=>{
     b.onclick=()=>{
@@ -844,6 +880,67 @@ function renderUps(){
   bindCopy();
 }
 renderUps();
+
+/* ===== 📈 SEMANA: KPIs vivos de la agenda + simulador Fase 2 ===== */
+function pCSV(t){const rows=[];let row=[],cur='',q=false;for(let i=0;i<t.length;i++){const c=t[i];
+ if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=c;}
+ else{if(c==='"')q=true;else if(c===','){row.push(cur);cur='';}
+ else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(cur);cur='';if(row.some(x=>x.trim()))rows.push(row);row=[];}
+ else cur+=c;}}
+ if(cur!==''||row.length){row.push(cur);if(row.some(x=>x.trim()))rows.push(row);}return rows;}
+function pFecha(x){const m=(x||'').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);return m?new Date(+m[3],+m[2]-1,+m[1]):null;}
+function pPrecio(x){const n=parseFloat(String(x||'').replace(/[^\d.]/g,''));return isFinite(n)&&n>0?n:null;}
+let CER_MES={arm:0,tit:0,esc:0};
+(async function loadKPIs(){
+  const root=document.getElementById('kpiroot'); if(!root)return;
+  try{
+    const res=await fetch('https://docs.google.com/spreadsheets/d/1fT8zuEXIS63mZDDHvOLRfWW744SHrOWR_Zd4cp9Pprw/gviz/tq?tqx=out:csv&t='+Date.now());
+    const rows=pCSV(await res.text()).slice(1);
+    const hoy=new Date();hoy.setHours(0,0,0,0);
+    const in7=new Date(hoy.getTime()+7*86400000);
+    const mesIni=new Date(hoy.getFullYear(),hoy.getMonth(),1);
+    let mes=0,mesFact=0,mesConPrecio=0,prox=0,sinPrecio=0,pend=0,comp=0,meses={},arm=0,tit=0,esc=0;
+    const diasConCita=new Set();
+    rows.forEach(r=>{
+      const d=pFecha(r[0]); if(!d||d.getFullYear()!==2026)return;
+      const est=(r[8]||'').toLowerCase(); if(est.includes('cancel'))return;
+      const precio=pPrecio(r[9]); const sv=(r[7]||'').toLowerCase();
+      const mk=d.getFullYear()+'-'+d.getMonth(); meses[mk]=(meses[mk]||0)+1;
+      if(/3\s*a|gtecnic/.test(sv)&&/cer|pasos/.test(sv))arm++;
+      else if(/5\s*a|mohs/.test(sv))tit++;
+      else if(/cer/.test(sv))esc++;
+      if(d>=mesIni&&d<=hoy){mes++;if(precio){mesFact+=precio;mesConPrecio++;}else sinPrecio++;
+        if(est.includes('complet')||est.includes('entregad'))comp++;else pend++;}
+      if(d>hoy&&d<=in7){prox++;diasConCita.add(d.toDateString());}
+    });
+    const nMeses=Math.max(1,Object.keys(meses).length);
+    CER_MES={arm:arm/nMeses,tit:tit/nMeses,esc:esc/nMeses};
+    const ticket=mesConPrecio?Math.round(mesFact/mesConPrecio):null;
+    let libres=0;for(let i=1;i<=7;i++){const d=new Date(hoy.getTime()+i*86400000);if(d.getDay()!==0&&d.getDay()!==6&&!diasConCita.has(d.toDateString()))libres++;}
+    root.innerHTML=`
+    <div class="bignum">
+      <div class="bn"><div class="v">${mes}</div><div class="l">Trabajos este mes</div></div>
+      <div class="bn"><div class="v">${mesFact?'$'+mesFact.toLocaleString():'—'}</div><div class="l">Facturado capturado</div></div>
+      <div class="bn"><div class="v">${ticket?'$'+ticket.toLocaleString():'—'}</div><div class="l">Ticket promedio (con precio)</div></div>
+      <div class="bn"><div class="v">${prox}</div><div class="l">Citas próximos 7 días</div></div>
+    </div>
+    <div class="card"><ul>
+      <li><b>${libres}</b> día(s) hábil(es) SIN cita en los próximos 7 — ${libres>=3?'agenda floja: hoy es día de mandar mensajes de recompra':'agenda razonable — cuida la ejecución'}.</li>
+      ${sinPrecio?`<li class="no"><b>${sinPrecio}</b> cita(s) del mes SIN precio capturado — el facturado real es mayor al mostrado. Captura el precio al agendar.</li>`:''}
+      ${pend&&!comp?`<li class="no">Ningún trabajo del mes está marcado "Completada" — el Estado no se está actualizando (los KPIs valen lo que valen tus datos).</li>`:''}
+      <li>Ritmo cerámicos (prom/mes 2026): <b>${CER_MES.esc.toFixed(1)}</b> Escudo · <b>${CER_MES.arm.toFixed(1)}</b> Armadura · <b>${CER_MES.tit.toFixed(1)}</b> Titán.</li>
+    </ul></div>`;
+    simFase2();
+  }catch(e){root.innerHTML='<div class="card" style="color:var(--warn)">No pude leer la agenda ('+e+')</div>';}
+})();
+function simFase2(){
+  const g=id=>+((document.getElementById(id)||{}).value||0);
+  const dArm=(g('s-arm')-5700)*CER_MES.arm, dTit=(g('s-tit')-9000)*CER_MES.tit, dEsc=(g('s-esc')-3500)*CER_MES.esc;
+  const tot=Math.round(dArm+dTit+dEsc);
+  const el=document.getElementById('simout'); if(!el)return;
+  el.innerHTML='Con tu volumen real: <b style="color:var(--pink);font-size:20px">'+(tot>=0?'+':'')+'$'+tot.toLocaleString()+'/mes</b> extra sin un cliente nuevo <span style="color:var(--muted)">(Escudo '+(dEsc>=0?'+':'')+Math.round(dEsc)+' · Armadura '+(dArm>=0?'+':'')+Math.round(dArm)+' · Titán '+(dTit>=0?'+':'')+Math.round(dTit)+')</span>. Al año: <b>'+(tot>=0?'+':'')+'$'+(tot*12).toLocaleString()+'</b>.';
+}
+['s-arm','s-tit','s-esc'].forEach(id=>{document.addEventListener('input',e=>{if(e.target&&e.target.id===id)simFase2();});});
 
 document.querySelectorAll(".tab").forEach(t=>{
   t.onclick=()=>{
