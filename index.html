@@ -894,7 +894,10 @@ let CER_MES={arm:0,tit:0,esc:0};
 (async function loadKPIs(){
   const root=document.getElementById('kpiroot'); if(!root)return;
   try{
-    const res=await fetch('https://docs.google.com/spreadsheets/d/1fT8zuEXIS63mZDDHvOLRfWW744SHrOWR_Zd4cp9Pprw/gviz/tq?tqx=out:csv&t='+Date.now());
+    // Proxy de agenda con TOKEN (F1): agenda completa (con precio, que los KPIs usan)
+    // corriendo como el dueño → la Sheet puede estar privada. Antes: gviz de la Sheet pública.
+    const PROXY='https://script.google.com/macros/s/AKfycbyzU9quKz-MBbbRAEOHpu0zTzmlqBfQ8UpWsQVnGzCAa3jDyOShMOA_VSD6JCYIqVc/exec';
+    const res=await fetch(PROXY+'?token=vamtk_p0VjiT267Vzi8geQhWonoVkEveK03__L&t='+Date.now());
     const rows=pCSV(await res.text()).slice(1);
     const hoy=new Date();hoy.setHours(0,0,0,0);
     const in7=new Date(hoy.getTime()+7*86400000);
